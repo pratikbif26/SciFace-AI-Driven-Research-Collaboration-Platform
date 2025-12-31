@@ -61,4 +61,4 @@ Access: Open http://localhost/sciface in your browser.
 💡 Why SciFace?
 In modern bioinformatics, data is only as valuable as its validation. SciFace was built with a "Dry-Lab/Wet-Lab" bridge mindset, ensuring that computational findings can find the experimental partners needed to turn data into published discoveries.
 
-Developed by: [Your Name] Focus: Full-Stack Bioinformatics & Research Tools
+Developed by: Pratik Parlekar Focus: Full-Stack Bioinformatics & Research Tools
