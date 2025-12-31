@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search - SciFace</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="home.html" class="navbar-brand">SCIENTIFICFACE</a>
+            <ul class="navbar-menu">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="search.html" class="active">Search</a></li>
+                <li><a href="upload.html">Upload</a></li>
+                <li><a href="index.html">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-container-wide">
+        <h2 style="color: var(--dark-gray); margin-bottom: 20px;">Search Research Papers</h2>
+        
+        <div class="filter-bar">
+            <h3 style="margin-bottom: 15px; color: var(--dark-gray);">Filters</h3>
+            
+            <div class="filter-row">
+                <div class="form-group">
+                    <label for="filter-type">Type</label>
+                    <select id="filter-type">
+                        <option value="">All Types</option>
+                        <option value="Article">Article</option>
+                        <option value="Book">Book</option>
+                        <option value="Conference Paper">Conference Paper</option>
+                        <option value="Review">Review</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="filter-subject">Subject Area</label>
+                    <select id="filter-subject">
+                        <option value="">All Subjects</option>
+                        <option value="Science">Science</option>
+                        <option value="Arts">Arts</option>
+                        <option value="Commerce">Commerce</option>
+                        <option value="Engineering">Engineering</option>
+                        <option value="Medicine">Medicine</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="filter-country">Authors Countries</label>
+                    <select id="filter-country">
+                        <option value="">All Countries</option>
+                        <option value="USA">USA</option>
+                        <option value="UK">UK</option>
+                        <option value="India">India</option>
+                        <option value="China">China</option>
+                        <option value="Japan">Japan</option>
+                        <option value="Germany">Germany</option>
+                    </select>
+                </div>
+            </div>
+            
+            <h3 style="margin: 20px 0 15px; color: var(--dark-gray);">Search</h3>
+            <div class="search-row">
+                <div class="form-group">
+                    <label for="search-author">Authors Name</label>
+                    <input type="text" id="search-author" placeholder="Enter author name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="search-title">Paper Title</label>
+                    <input type="text" id="search-title" placeholder="Enter paper title">
+                </div>
+                
+                <div class="form-group">
+                    <label for="search-journal">Journal Name</label>
+                    <input type="text" id="search-journal" placeholder="Enter journal name">
+                </div>
+            </div>
+            
+            <button onclick="performSearch()" class="btn-search">Search</button>
+        </div>
+        
+        <div id="search-results-container">
+            <div class="empty-state">
+                <h3>Start Your Search</h3>
+                <p>Use the filters and search fields above to find research papers</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get the global UI and API services from app.js
+            // This assumes window.ScientificFace is still initialized in app.js
+            const { apiService, UIComponents } = window.ScientificFace;
+
+            // Perform search function (for the main search bar)
+            window.performSearch = async function() {
+                const resultsContainer = document.getElementById('search-results-container');
+                UIComponents.showLoading(resultsContainer);
+                
+                // Collect filter data as an object
+                const filters = {
+                    type: document.getElementById('filter-type').value,
+                    subject: document.getElementById('filter-subject').value,
+                    country: document.getElementById('filter-country').value,
+                    author: document.getElementById('search-author').value,
+                    title: document.getElementById('search-title').value,
+                    journal: document.getElementById('search-journal').value
+                };
+
+                try {
+                    // Call real API from app.js
+                    const data = await apiService.searchArticles(filters); // 'search.php'
+                    
+                    // Clear container
+                    resultsContainer.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        UIComponents.showEmptyState(resultsContainer,
+                            'No results found',
+                            'Try adjusting your search criteria'
+                        );
+                        return;
+                    }
+                    
+                    // Add results header
+                    const header = document.createElement('h3');
+                    header.style.marginBottom = '20px';
+                    header.style.color = 'var(--dark-gray)';
+                    header.textContent = `Found ${data.length} results`;
+                    resultsContainer.appendChild(header);
+                    
+                    // Create and append post cards
+                    data.forEach(post => {
+                        // Use the global component from app.js
+                        const postCard = UIComponents.createPostCard(post);
+                        resultsContainer.appendChild(postCard);
+                    });
+                    
+                } catch (error) {
+                    UIComponents.showError(resultsContainer, 'Error performing search. Please try again later.');
+                    console.error('Search error:', error);
+                }
+            }
+
+            // Allow Enter key to trigger search (for the main search bar)
+            const searchInputs = ['search-author', 'search-title', 'search-journal'];
+            searchInputs.forEach(id => {
+                document.getElementById(id).addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        // Use the global function
+                        window.performSearch();
+                    }
+                });
+            });
+        });
+        
+    </script>
+</body>
+</html>

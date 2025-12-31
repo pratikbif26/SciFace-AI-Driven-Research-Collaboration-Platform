@@ -1,0 +1,27 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- XAMPP / Web Server ---
+# Ignore local configuration or temporary upload files
+phpMyAdmin/
+logs/
+tmp/
+*.log
+
+# --- OS Specific ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- IDEs ---
+# If you use VS Code or PyCharm
+.vscode/
+.idea/

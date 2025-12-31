@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Feed - SciFace</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- UPDATED: Moved app.js to the <head> -->
+    <!-- This ensures window.ScientificFace is available for the inline script -->
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="home.html" class="navbar-brand">SCIENTIFICFACE</a>
+            <ul class="navbar-menu">
+                <li><a href="home.html" class="active">Home</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="search.html">Search</a></li>
+                <li><a href="upload.html">Upload</a></li>
+                <li><a href="index.html">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="home-layout">
+        <div class="feed-column">
+            <div class="quick-post-box card">
+                <textarea id="quick-post-input" placeholder="What's on your mind? Share a thought, question, or insight..."></textarea>
+                <div class="quick-post-actions">
+                    <button class="btn-primary btn-small" onclick="handleQuickPost()">Post</button>
+                    <button class="btn-secondary btn-small" onclick="clearQuickPost()">Clear</button>
+                </div>
+            </div>
+
+            <div class="feed-tabs">
+                <button class="tab-btn active" onclick="switchTab('following')" id="tab-following">
+                    Following
+                </button>
+                <button class="tab-btn" onclick="switchTab('trending')" id="tab-trending">
+                    🔥 Trending
+                </button>
+            </div>
+
+            <div id="feed-container">
+                <div class="loading">Loading feed...</div>
+            </div>
+        </div>
+
+        <!-- Sidebar (no changes) -->
+        <div class="sidebar-column">
+            <div class="card discovery-card">
+                <h3 class="discovery-title">
+                    <span class="ai-icon">✨</span> AI Collaboration Hub
+                </h3>
+                <div class="discovery-section">
+                    <h4>Suggested Connections</h4>
+                    <p class="discovery-intro">Based on your research profile</p>
+                    <div class="suggested-connections">
+                        <a href="profile.html?user=5" class="connection-card">
+                            <div class="connection-avatar">👨‍🔬</div>
+                            <div class="connection-info">
+                                <div class="connection-name">Dr. Sarah Mitchell</div>
+                                <div class="connection-field">Genomics • Stanford</div>
+                            </div>
+                        </a>
+                        <a href="profile.html?user=8" class="connection-card">
+                            <div class="connection-avatar">👩‍🔬</div>
+                            <div class="connection-info">
+                                <div class="connection-name">Prof. James Chen</div>
+                                <div class="connection-field">Bioinformatics • MIT</div>
+                            </div>
+                        </a>
+                        <a href="profile.html?user=12" class="connection-card">
+                            <div class="connection-avatar">👨‍💼</div>
+                            <div class="connection-info">
+                                <div class="connection-name">Dr. Aisha Patel</div>
+                                <div class="connection-field">Molecular Biology • Oxford</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="discovery-divider"></div>
+
+                <div class="discovery-section">
+                    <h4>Recommended for You</h4>
+                    <div class="recommended-papers">
+                        <div class="recommendation-item">
+                            <div class="recommendation-badge high">92% Novelty</div>
+                            <div class="recommendation-content">
+                                <a href="search.html" class="recommendation-title">
+                                    Advanced CRISPR Techniques in RNA Sequencing
+                                </a>
+                                <div class="recommendation-meta">Posted 2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="recommendation-item">
+                            <div class="recommendation-badge medium">87% Novelty</div>
+                            <div class="recommendation-content">
+                                <a href="search.html" class="recommendation-title">
+                                    Machine Learning in Protein Folding Prediction
+                                </a>
+                                <div class="recommendation-meta">Matches: RNA-seq interest</div>
+                            </div>
+                        </div>
+                        <div class="recommendation-item">
+                            <div class="recommendation-badge high">94% Novelty</div>
+                            <div class="recommendation-content">
+                                <a href="search.html" class="recommendation-title">
+                                    Breakthrough in Gene Expression Analysis
+                                </a>
+                                <div class="recommendation-meta">Trending in your field</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            </div>
+    </div>
+
+    <!-- UPDATED SCRIPT BLOCK -->
+    <script>
+        // This script will run after app.js (because of 'defer')
+        // We wait for DOMContentLoaded to be sure all elements are ready
+        document.addEventListener('DOMContentLoaded', () => {
+        
+            // Get the global UI and API services from app.js
+            const { apiService, UIComponents } = window.ScientificFace;
+
+            // Current active tab
+            let currentTab = 'following';
+
+            // Function to load feed based on tab
+            async function loadFeed(tab) {
+                const feedContainer = document.getElementById('feed-container');
+                UIComponents.showLoading(feedContainer);
+                
+                try {
+                    // UPDATED: Call the real API
+                    const data = await apiService.getFollowedFeed(tab); // 'get_feed.php'
+                    
+                    feedContainer.innerHTML = '';
+                    
+                    if (data.length === 0) {
+                        UIComponents.showEmptyState(feedContainer,
+                            'No posts yet',
+                            tab === 'following' ? 'Follow researchers to see their posts' : 'No trending posts at the moment'
+                        );
+                        return;
+                    }
+                    
+                    data.forEach(post => {
+                        // Use the global component
+                        const postCard = UIComponents.createPostCard(post);
+                        feedContainer.appendChild(postCard);
+                    });
+                    
+                } catch (error) {
+                    UIComponents.showError(feedContainer, 'Error loading feed. Please try again later.');
+                    console.error('Error loading feed:', error);
+                }
+            }
+
+            // Switch between tabs
+            // UPDATED: Made these functions available globally
+            window.switchTab = function(tab) {
+                currentTab = tab;
+                
+                // Update tab buttons
+                document.getElementById('tab-following').classList.remove('active');
+                document.getElementById('tab-trending').classList.remove('active');
+                document.getElementById('tab-' + tab).classList.add('active');
+                
+                // Load appropriate feed
+                loadFeed(tab);
+            }
+
+            // Handle quick post
+            window.handleQuickPost = async function() {
+                const input = document.getElementById('quick-post-input');
+                const content = input.value.trim();
+                
+                if (!content) {
+                    alert('Please enter some content to post');
+                    return;
+                }
+                
+                try {
+                    // UPDATED: Send to real API
+                    const data = await apiService.quickPost({ content }); // 'quick_post.php'
+
+                    if (data.success) {
+                        UIComponents.showSuccess('Posted successfully!');
+                        input.value = '';
+                        // Optionally: reload feed if you just posted
+                        if (currentTab === 'following') {
+                             loadFeed('following');
+                        }
+                    } else {
+                        alert('Post failed: ' + (data.error || 'Unknown error'));
+                    }
+
+                } catch (error) {
+                    alert('An error occurred while posting.');
+                    console.error('Quick post error:', error);
+                }
+            }
+
+            // Clear quick post
+            window.clearQuickPost = function() {
+                document.getElementById('quick-post-input').value = '';
+            }
+
+            // Load initial feed
+            loadFeed('following');
+        
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Article - SciFace</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+    </head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="home.html" class="navbar-brand">SCIENTIFICFACE</a>
+            <ul class="navbar-menu">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="profile.html">Profile</a></li>
+                <li><a href="search.html">Search</a></li>
+                <li><a href="upload.html" class="active">Upload</a></li>
+                <li><a href="index.html">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <div class="upload-container">
+            <h2>Article Submission</h2>
+            <p style="color: var(--medium-gray); margin-bottom: 25px;">
+                Submit your research paper for analysis and sharing with the scientific community
+            </p>
+
+            <div id="success-msg" style="display: none;" class="success-message">
+                Article submitted successfully! Redirecting to home...
+            </div>
+
+            <form id="upload-form" onsubmit="handleSubmit(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="authors-name">Authors Name *</label>
+                        <input type="text" id="authors-name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="paper-title">Paper Title *</label>
+                        <input type="text" id="paper-title" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="type">Type *</label>
+                        <select id="type" required>
+                            <option value="">Select Type</option>
+                            <option value="Article">Article</option>
+                            <option value="Book">Book</option>
+                            <option value="Conference Paper">Conference Paper</option>
+                            <option value="Review">Review</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject-area">Subject Area *</label>
+                        <select id="subject-area" required>
+                            <option value="">Select Subject</option>
+                            <option value="Science">Science</option>
+                            <option value="Arts">Arts</option>
+                            <option value="Commerce">Commerce</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Medicine">Medicine</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group form-row-full">
+                        <label for="abstract">Abstract *</label>
+                        <textarea id="abstract" required placeholder="Enter the abstract of your paper"></textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="journal-name">Journal Name *</label>
+                        <input type="text" id="journal-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="publication-years">Publication Year *</label>
+                        <input type="number" id="publication-years" min="1900" max="2030" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="if-years">Impact Factor of Year</label>
+                        <input type="number" id="if-years" step="0.01" min="0" placeholder="e.g., 5.34">
+                    </div>
+                    <div class="form-group">
+                        <label for="authors-countries">Authors Countries *</label>
+                        <input type="text" id="authors-countries" required placeholder="e.g., USA, UK, India">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="doi">DOI *</label>
+                        <input type="text" id="doi" required placeholder="e.g., 10.1234/example.2024.5678">
+                    </div>
+                    <div class="form-group">
+                        <label for="link">Link: Original Source of Research Paper *</label>
+                        <input type="url" id="link" required placeholder="https://...">
+                    </div>
+                </div>
+                <button type="submit" class="btn-primary" style="margin-top: 20px;">
+                    Submit for Analysis
+                </button>
+            </form>
+            
+            <hr style="margin: 40px 0;">
+
+            <div class="rsyn-engine-section">
+                <h3>R-SYN Engine: Analyze Your Research Novelty & Synergy</h3>
+                <p style="color: var(--medium-gray); margin-bottom: 25px;">
+                    Click below to analyze the **Abstract** you entered above for novelty (prior art) and collaboration matches.
+                </p>
+                <input type="hidden" id="user-id-input" value="1"> 
+                <button id="analyze-btn" class="btn-secondary" style="margin-bottom: 20px;">Analyze Abstract</button>
+
+                <div id="results-container" style="display:none; border-top: 1px solid var(--light-gray); padding-top: 20px;">
+                    <h3>Analysis Results</h3>
+
+                    <h4><span id="keyword-count">0</span> Processed Keywords:</h4>
+                    <div id="keywords-output" style="font-style: italic; color: #555; margin-bottom: 20px;"></div>
+
+                    <h4>Prior Art (Novelty Assessment):</h4>
+                    <ul id="novelty-output" style="list-style-type: disc; padding-left: 20px; margin-bottom: 20px;"></ul>
+
+                    <h4>Collaboration Suggestions (Synergy Matching):</h4>
+                    <table id="synergy-table" border="1" style="width:100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="padding: 8px; background-color: #f2f2f2;">Username</th>
+                                <th style="padding: 8px; background-color: #f2f2f2;">Email</th>
+                                <th style="padding: 8px; background-color: #f2f2f2;">Matching Skills</th>
+                                <th style="padding: 8px; background-color: #f2f2f2;">Matching Topics</th>
+                            </tr>
+                        </thead>
+                        <tbody id="synergy-output"></tbody>
+                    </table>
+                </div>
+            </div>
+            </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get the global UI and API services from app.js
+            const { apiService, UIComponents } = window.ScientificFace;
+            
+            // --- 1. R-SYN Engine DOM Elements ---
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const abstractInput = document.getElementById('abstract'); // Using the form's abstract field
+            const userIdInput = document.getElementById('user-id-input');
+            const resultsContainer = document.getElementById('results-container');
+            
+            // Output elements
+            const keywordsOutput = document.getElementById('keywords-output');
+            const keywordCountSpan = document.getElementById('keyword-count');
+            const noveltyOutput = document.getElementById('novelty-output');
+            const synergyOutput = document.getElementById('synergy-output');
+
+            // Set current year as default
+            const yearInput = document.getElementById('publication-years');
+            if (yearInput.value === "") { // Only set if empty
+                 yearInput.value = new Date().getFullYear();
+            }
+
+            // --- R-SYN ENGINE LOGIC FUNCTIONS (Moved from previous search.html) ---
+
+            function showLoading() {
+                resultsContainer.style.display = 'block';
+                resultsContainer.innerHTML = '<h3>Analysis Results</h3><p>Processing data... please wait.</p>';
+            }
+
+            function showError(message) {
+                resultsContainer.style.display = 'block';
+                resultsContainer.innerHTML = `<h3>Analysis Failed</h3><p style="color: red;">Error: ${message}</p>`;
+            }
+            
+            function displayRsynResults(data) {
+                // Clear previous results and reset container
+                noveltyOutput.innerHTML = '';
+                synergyOutput.innerHTML = '';
+
+                // Keywords
+                keywordCountSpan.textContent = `${data.keywords.length}`;
+                keywordsOutput.textContent = data.keywords.join(', ');
+
+                // Prior Art (Novelty)
+                if (data.prior_art && data.prior_art.length > 0) {
+                    data.prior_art.forEach(item => {
+                        const li = document.createElement('li');
+                        const title = item.title || 'Untitled Prior Art';
+                        const score = (item.similarity_score !== undefined) ? item.similarity_score.toFixed(2) : 'N/A';
+                        const summary = item.summary || 'Summary unavailable.';
+                        
+                        li.innerHTML = `<strong>${title}</strong> (Similarity: ${score}): ${summary}`;
+                        noveltyOutput.appendChild(li);
+                    });
+                } else {
+                    noveltyOutput.innerHTML = '<li>No significant prior art found. High potential for novelty!</li>';
+                }
+
+                // Collaboration Suggestions (Synergy)
+                const synergyTableBody = document.getElementById('synergy-output');
+                if (data.collaborators && data.collaborators.length > 0) {
+                    data.collaborators.forEach(user => {
+                        const tr = document.createElement('tr');
+                        const skills = (user.matching_skills && user.matching_skills.length) ? user.matching_skills.join(', ') : 'None';
+                        const topics = (user.matching_topics && user.matching_topics.length) ? user.matching_topics.join(', ') : 'None';
+                        
+                        tr.innerHTML = `
+                            <td style="padding: 8px;">${user.username || 'Unknown User'}</td>
+                            <td style="padding: 8px;"><a href="mailto:${user.email}">${user.email || 'N/A'}</a></td>
+                            <td style="padding: 8px;">${skills}</td>
+                            <td style="padding: 8px;">${topics}</td>
+                        `;
+                        synergyTableBody.appendChild(tr);
+                    });
+                } else {
+                    synergyTableBody.innerHTML = '<tr><td colspan="4" style="padding: 8px; text-align: center;">No immediate synergy matches found.</td></tr>';
+                }
+
+                // Show the results section
+                resultsContainer.style.display = 'block';
+            }
+
+
+            // --- R-SYN Engine Event Listener ---
+            if (analyzeBtn) {
+                analyzeBtn.addEventListener('click', async function() {
+                    const abstractText = abstractInput.value.trim();
+                    const userId = userIdInput.value;
+
+                    if (abstractText === "") {
+                        alert("Please enter your research abstract in the form above before analyzing.");
+                        return;
+                    }
+
+                    // 1. Disable button and show loading state
+                    analyzeBtn.disabled = true;
+                    analyzeBtn.textContent = "Analyzing... Please wait.";
+                    showLoading(); 
+
+                    const dataToSend = {
+                        user_id: userId,
+                        abstract: abstractText
+                    };
+
+                    // 2. Send data to your Flask analysis endpoint
+                    try {
+                        const response = await fetch('http://127.0.0.1:5000/api/analyze-rsyn', { 
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(dataToSend),
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(`HTTP error! Status: ${response.status}. Message: ${errorData.error || 'Server error'}`);
+                        }
+
+                        const results = await response.json();
+                        
+                        // 3. Update the HTML with the results
+                        displayRsynResults(results);
+
+                    } catch (error) {
+                        showError(error.message);
+                        console.error('R-SYN Analysis failed:', error);
+                    } finally {
+                        // 4. Re-enable button
+                        analyzeBtn.disabled = false;
+                        analyzeBtn.textContent = "Analyze Abstract";
+                    }
+                });
+            }
+
+
+            // --- Form Submission Logic (Original Logic) ---
+            window.handleSubmit = async function(event) {
+                event.preventDefault();
+
+                // Collect form data
+                const formData = {
+                    authors_name: document.getElementById('authors-name').value,
+                    paper_title: document.getElementById('paper-title').value,
+                    type: document.getElementById('type').value,
+                    abstract: document.getElementById('abstract').value,
+                    subject_area: document.getElementById('subject-area').value,
+                    journal_name: document.getElementById('journal-name').value,
+                    publication_years: document.getElementById('publication-years').value,
+                    if_years: document.getElementById('if-years').value,
+                    authors_countries: document.getElementById('authors-countries').value,
+                    doi: document.getElementById('doi').value,
+                    link: document.getElementById('link').value
+                };
+
+                // Call real API (PHP endpoint)
+                try {
+                    const data = await apiService.submitArticle(formData); // 'submit_article.php'
+
+                    if (data.success) {
+                        // Show success message
+                        const successMsg = document.getElementById('success-msg');
+                        successMsg.style.display = 'block';
+                        
+                        // Hide form and R-SYN engine
+                        document.getElementById('upload-form').style.display = 'none';
+                        document.querySelector('.rsyn-engine-section').style.display = 'none';
+
+
+                        // Redirect after 2 seconds
+                        setTimeout(() => {
+                            window.location.href = 'home.html';
+                        }, 2000);
+                    } else {
+                        alert('Submission failed: ' + (data.error || 'Unknown error'));
+                    }
+                } catch (error) {
+                    alert('An error occurred during submission.');
+                    console.error('Submit error:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

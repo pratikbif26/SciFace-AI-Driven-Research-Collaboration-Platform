@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SciFace - Login</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- 
+      FIX 1: Moved app.js here from the body 
+      FIX 2: Added 'defer' to make sure it loads correctly
+    -->
+    <script src="app.js" defer></script>
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1>Welcome to </h1> <h2>SciFace</h2>
+            <p>A dedicated social networking platform for scientists and researchers</p>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form" class="auth-form active">
+            <h2>Login</h2>
+            <!-- The <script> tag was removed from here -->
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required>
+                </div>
+                <button type="submit" class="btn-primary">Login</button>
+            </form>
+            
+            <!-- Social Login Section -->
+            <div class="social-login-divider">
+                <span>or continue with</span>
+            </div>
+            <div class="social-login-buttons">
+                <button type="button" class="btn-social google" onclick="socialLogin('google')">
+                    Google
+                </button>
+                <button type="button" class="btn-social linkedin" onclick="socialLogin('linkedin')">
+                    LinkedIn
+                </button>
+                <button type="button" class="btn-social github" onclick="socialLogin('github')">
+                    GitHub
+                </button>
+            </div>
+            <!-- End Social Login Section -->
+
+            <p class="toggle-text">
+                Don't have an account? 
+                <a href="#" onclick="toggleForm(); return false;">Register here</a>
+            </p>
+        </div>
+
+        <!-- Registration Form -->
+        <div id="register-form" class="auth-form">
+            <h2>Register</h2>
+            <form onsubmit="handleRegister(event)">
+                <div class="form-group">
+                    <label for="reg-fullname">Full Name</label>
+                    <input type="text" id="reg-fullname" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-email">Email</label>
+                    <input type="email" id="reg-email" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Password</label>
+                    <input type="password" id="reg-password" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-field">Primary Research Field</label>
+                    <input type="text" id="reg-field" placeholder="e.g., Molecular Biology" required>
+                </div>
+                <div class="form-group">
+                    <label for="reg-institution">Institution</label>
+                    <input type="text" id="reg-institution" placeholder="e.g., Stanford University" required>
+                </div>
+                <button type="submit" class="btn-primary">Register</button>
+            </form>
+
+            <!-- Social Login Section -->
+            <div class="social-login-divider">
+                <span>or register with</span>
+            </div>
+            <div class="social-login-buttons">
+                <button type="button" class="btn-social google" onclick="socialLogin('google')">
+                    Google
+                </button>
+                <button type="button" class="btn-social linkedin" onclick="socialLogin('linkedin')">
+                    LinkedIn
+                </button>
+                <button type="button" class="btn-social github" onclick="socialLogin('github')">
+                    GitHub
+                </button>
+            </div>
+            <!-- End Social Login Section -->
+
+            <p class="toggle-text">
+                Already have an account? 
+                <a href="#" onclick="toggleForm(); return false;">Login here</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- UPDATED SCRIPT BLOCK -->
+    <script>
+        // FIX 3: Wait for the DOM and app.js to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+        
+            // Now it's safe to get the authManager
+            const authManager = window.ScientificFace.authManager;
+
+            // FIX 4: Attach functions to the 'window' object
+            // so the 'onsubmit' and 'onclick' attributes can find them.
+            window.toggleForm = function() {
+                const loginForm = document.getElementById('login-form');
+                const registerForm = document.getElementById('register-form');
+                
+                loginForm.classList.toggle('active');
+                registerForm.classList.toggle('active');
+            }
+
+            /**
+             * UPDATED: Handles real login by fetching login.php
+             */
+            window.handleLogin = async function(event) {
+                event.preventDefault();
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                // Show loading state
+                const loginButton = event.target.querySelector('button');
+                loginButton.textContent = 'Logging in...';
+                loginButton.disabled = true;
+
+                try {
+                    // Use the authManager from app.js
+                    const data = await authManager.login(email, password);
+
+                    if (data.success) {
+                        window.location.href = 'home.html';
+                    } else {
+                        alert('Login failed: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('An error occurred. Please check the console (F12) for details.');
+                    console.error('Login error:', error);
+                } finally {
+                    loginButton.textContent = 'Login';
+                    loginButton.disabled = false;
+                }
+            }
+
+            /**
+             * UPDATED: Handles real registration by fetching register.php
+             */
+            window.handleRegister = async function(event) {
+                event.preventDefault();
+                const userData = {
+                    full_name: document.getElementById('reg-fullname').value,
+                    email: document.getElementById('reg-email').value,
+                    password: document.getElementById('reg-password').value,
+                    research_field: document.getElementById('reg-field').value,
+                    institution: document.getElementById('reg-institution').value
+                };
+
+                const registerButton = event.target.querySelector('button');
+                registerButton.textContent = 'Registering...';
+                registerButton.disabled = true;
+
+                try {
+                    // Use the authManager from app.js
+                    const data = await authManager.register(userData);
+
+                    if (data.success) {
+                        window.location.href = 'home.html';
+                    } else {
+                        alert('Registration failed: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('An error occurred. Please check the console (F12) for details.');
+                    console.error('Registration error:', error);
+                } finally {
+                    registerButton.textContent = 'Register';
+                    registerButton.disabled = false;
+                }
+            }
+
+            window.socialLogin = function(provider) {
+                console.log(`Logging in with ${provider}...`);
+                alert(`Login with ${provider} is not implemented yet.`);
+            }
+        
+        });
+    </script>
+</body>
+</html>

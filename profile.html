@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - SciFace</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- UPDATED: Moved app.js to the <head> -->
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <!-- Navigation Bar (no changes) -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="home.html" class="navbar-brand">SCIENTIFICFACE</a>
+            <ul class="navbar-menu">
+                <li><a href="home.html">Home</a></li>
+                <li><a href="profile.html" class="active">Profile</a></li>
+                <li><a href="search.html">Search</a></li>
+                <li><a href="upload.html">Upload</a></li>
+                <li><a href="index.html">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-container-wide">
+        <!-- Profile Header -->
+        <div class="profile-header" id="profile-header">
+            <div class="loading">Loading profile...</div>
+        </div>
+
+        <!-- User Posts Grid -->
+        <h3 style="color: var(--dark-gray); margin-bottom: 20px;">Publications</h3>
+        <div class="user-posts-grid" id="user-posts-grid">
+            <div class="loading">Loading publications...</div>
+        </div>
+    </div>
+
+    <!-- UPDATED SCRIPT BLOCK -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get the global UI and API services from app.js
+            const { apiService, UIComponents, Utils } = window.ScientificFace;
+
+            // Get user ID from URL
+            function getUserIdFromURL() {
+                // Use the global Utils function
+                // Default to user 1 (or any existing user) if none is specified
+                return Utils.getURLParameter('user') || '1'; 
+            }
+
+            // Create post card for grid
+            // UPDATED: This function is now removed.
+            // We will use UIComponents.createPostCard(post) from app.js
+
+            // Toggle follow status
+            // UPDATED: Made this global so the button's onclick can find it
+            window.toggleFollow = async function(userId) {
+                const button = document.getElementById('follow-btn');
+                
+                // UPDATED: Call real API
+                try {
+                    const data = await apiService.toggleFollow(userId); // 'toggle_follow.php'
+                    
+                    if (data.success) {
+                        if (data.is_following) {
+                            button.textContent = 'Unfollow';
+                            button.className = 'btn-unfollow';
+                        } else {
+                            button.textContent = 'Follow';
+                            button.className = 'btn-follow';
+                        }
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                } catch (error) {
+                    alert('An error occurred.');
+                    console.error('Follow toggle error:', error);
+                }
+            }
+
+            // Load profile
+            async function loadProfile() {
+                const userId = getUserIdFromURL();
+                const profileHeader = document.getElementById('profile-header');
+                const postsGrid = document.getElementById('user-posts-grid');
+                
+                try {
+                    // UPDATED: Call real API
+                    const data = await apiService.getProfile(userId); // 'get_profile.php'
+
+                    if (data.success === false) {
+                        throw new Error(data.error);
+                    }
+                    
+                    // Render profile header
+                    const followBtn = data.user_info.is_followed_by_me
+                        ? `<button id="follow-btn" class="btn-unfollow" onclick="toggleFollow(${userId})">Unfollow</button>`
+                        : `<button id="follow-btn" class="btn-follow" onclick="toggleFollow(${userId})">Follow</button>`;
+                    
+                    profileHeader.innerHTML = `
+                        <div class="profile-info">
+                            <div class="profile-details">
+                                <h2>${data.user_info.full_name}</h2>
+                                <p class="profile-bio">${data.user_info.bio || 'No bio provided.'}</p>
+                                <div style="color: var(--medium-gray); font-size: 0.9rem;">
+                                    ${data.user_posts.length} publications
+                                </div>
+                            </div>
+                            <div>
+                                ${followBtn}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Render posts grid
+                    postsGrid.innerHTML = '';
+                    
+                    if (data.user_posts.length === 0) {
+                        UIComponents.showEmptyState(postsGrid,
+                            'No publications yet',
+                            "This researcher hasn't submitted any papers"
+                        );
+                        return;
+                    }
+                    
+                    data.user_posts.forEach(post => {
+                        // UPDATED: Use the global createPostCard function
+                        const postCard = UIComponents.createPostCard(post);
+                        postsGrid.appendChild(postCard);
+                    });
+                    
+                } catch (error) {
+                    UIComponents.showError(profileHeader, 'Error loading profile. Please try again later.');
+                    postsGrid.innerHTML = '';
+                    console.error('Profile loading error:', error);
+                }
+            }
+
+            // Load profile on page load
+            loadProfile();
+        });
+    </script>
+</body>
+</html>
